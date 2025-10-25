@@ -1,0 +1,224 @@
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+
+        function setTheme(isDark) {
+            document.documentElement.className = isDark ? 'dark-mode' : 'light-mode';
+            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            document.cookie = `darkMode=${isDark}; path=/; max-age=31536000`;
+        }
+
+        themeToggle.addEventListener('click', function () {
+            const isDark = document.documentElement.classList.contains('dark-mode');
+            themeIcon.style.animation = 'themeSwitch 0.6s ease';
+            setTimeout(() => {
+                setTheme(!isDark);
+                themeIcon.style.animation = '';
+            }, 300);
+        });
+
+
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = document.cookie.includes('darkMode=true');
+        if (savedTheme) {
+            setTheme(true);
+        } else if (prefersDark && !document.cookie.includes('darkMode=')) {
+            setTheme(true);
+        }
+
+
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenuBtn.addEventListener('click', function () {
+            navLinks.classList.toggle('active');
+            mobileMenuBtn.innerHTML = navLinks.classList.contains('active') ?
+                '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+        });
+
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function () {
+                navLinks.classList.remove('active');
+                mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            });
+        });
+
+
+        window.addEventListener('scroll', function () {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.structure-item, .schedule-card, .gallery-item, .piket-list li').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = 'all 0.6s ease';
+                observer.observe(el);
+            });
+        });
+
+
+        const galleryModal = document.getElementById('galleryModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalAlt = document.getElementById('modalAlt');
+        const modalClose = document.getElementById('modalClose');
+        const modalPrev = document.getElementById('modalPrev');
+        const modalNext = document.getElementById('modalNext');
+        const modalCounter = document.getElementById('modalCounter');
+
+        let currentImageIndex = 0;
+        const galleryImages = [{ "src": "uploads\/gallery\/68d9e5c5bbf93.jpg", "alt": "6", "title": "6" }, { "src": "uploads\/gallery\/68d9e5a67feb0.jpg", "alt": "5", "title": "5" }, { "src": "uploads\/gallery\/68d9e57c9aa7b.jpg", "alt": "4", "title": "4" }, { "src": "uploads\/gallery\/68d9e5126ea18.jpg", "alt": "3", "title": "3" }, { "src": "uploads\/gallery\/68d9e4fd0e752.jpg", "alt": "2", "title": "2" }, { "src": "uploads\/gallery\/68d9e2de5b294.jpg", "alt": "1", "title": "1" }];
+
+
+        document.querySelectorAll('.gallery-item').forEach((item, index) => {
+            item.addEventListener('click', () => {
+                openGalleryModal(index);
+            });
+        });
+
+        function openGalleryModal(index) {
+            currentImageIndex = index;
+            updateModalContent();
+            galleryModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+
+            modalImage.classList.remove('slide-left', 'slide-right');
+        }
+
+        function updateModalContent() {
+            const image = galleryImages[currentImageIndex];
+            modalImage.src = image.src;
+            modalImage.alt = image.alt;
+            modalTitle.textContent = image.title;
+            modalAlt.textContent = image.alt;
+            modalCounter.textContent = `${currentImageIndex + 1}/${galleryImages.length}`;
+
+
+            modalPrev.disabled = currentImageIndex === 0;
+            modalNext.disabled = currentImageIndex === galleryImages.length - 1;
+        }
+
+        function closeGalleryModal() {
+            galleryModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showNextImage() {
+            if (currentImageIndex < galleryImages.length - 1) {
+                currentImageIndex++;
+                modalImage.classList.add('slide-left');
+                updateModalContent();
+                setTimeout(() => {
+                    modalImage.classList.remove('slide-left');
+                }, 600);
+            }
+        }
+
+        function showPrevImage() {
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                modalImage.classList.add('slide-right');
+                updateModalContent();
+                setTimeout(() => {
+                    modalImage.classList.remove('slide-right');
+                }, 600);
+            }
+        }
+
+
+        modalClose.addEventListener('click', closeGalleryModal);
+        modalNext.addEventListener('click', showNextImage);
+        modalPrev.addEventListener('click', showPrevImage);
+
+
+        document.addEventListener('keydown', (e) => {
+            if (galleryModal.classList.contains('active')) {
+                if (e.key === 'Escape') closeGalleryModal();
+                if (e.key === 'ArrowRight') showNextImage();
+                if (e.key === 'ArrowLeft') showPrevImage();
+            }
+        });
+
+        galleryModal.addEventListener('click', (e) => {
+            if (e.target === galleryModal) {
+                closeGalleryModal();
+            }
+        });
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        modalImage.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        modalImage.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+
+                    showNextImage();
+                } else {
+                    showPrevImage();
+                }
+            }
+        }
+
+
+        function preloadImages() {
+            galleryImages.forEach(image => {
+                const img = new Image();
+                img.src = image.src;
+            });
+        }
+
+
+        window.addEventListener('load', preloadImages);
